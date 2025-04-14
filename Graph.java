@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   YOUR NAME / SECTION NUMBER
+ *   Walter Mikula / COMP272 002
  *
  *   Note, additional comments provided throughout this source code
  *   is for educational purposes
@@ -105,6 +105,31 @@ public class Graph {
   public int findRoot() {
 
     // ADD YOUR CODE HERE - DO NOT FORGET TO ADD YOUR NAME/SECTION AT TOP OF FILE
-    return -1;
+    int[] incoming = new int[numVertices];
+
+    // Count incoming edges
+    for (int src = 0; src < numVertices; src++) {
+      for (int dest : adjListArr[src]) {
+        incoming[dest]++;
+      }
+    }
+
+    int rootIndex = -1;
+
+    // Find the vertex with zero incoming edges
+    for (int i = 0; i < numVertices; i++) {
+      if (incoming[i] == 0) {
+        if (rootIndex != -1) {
+          return -1; // More than one root
+        }
+        rootIndex = i;
+      }
+    }
+
+    if (rootIndex == -1) {
+      return -1; // No root found
+    }
+    
+    return vertexValues.get(rootIndex);
   } 
 }
