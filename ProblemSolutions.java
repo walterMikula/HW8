@@ -1,6 +1,6 @@
 /******************************************************************
  *
- *   ADD YOUR NAME / SECTION NUMBER HERE
+ *   Walter Mikula / COMP 272 002
  *
  *   This java file contains the problem solutions of canFinish and
  *   numGroups methods.
