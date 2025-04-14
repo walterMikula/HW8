@@ -72,46 +72,66 @@ class ProblemSolutions {
      * @return boolean          - True if all exams can be taken, else false.
      */
 
-    public boolean canFinish(int numExams, 
-                             int[][] prerequisites) {
-      
-        int numNodes = numExams;  // # of nodes in graph
+        public boolean canFinish(int numExams, int[][] prerequisites) {
+            int numNodes = numExams; // # of nodes in graph
+            // Build directed graph's adjacency list
+            ArrayList<Integer>[] adj = getAdjList(numExams, prerequisites); // array to count incoming edges for each node
+            int[] inDegree = new int[numExams];
 
-        // Build directed graph's adjacency list
-        ArrayList<Integer>[] adj = getAdjList(numExams, 
-                                        prerequisites); 
+            for (int node = 0; node < numNodes; node++) {
+                for (int neighbor : adj[node]) {
+                    inDegree[neighbor]++;
+                }
+            }
 
-        // ADD YOUR CODE HERE - ADD YOUR NAME / SECTION AT TOP OF FILE
-        return false;
+            Queue<Integer> queue = new LinkedList<>();//creates a queue for nodes
+            for (int i = 0; i < numExams; i++) {
+                if (inDegree[i] == 0) { // if no prerequisites, add to processing queue
+                    queue.offer(i);
+                }
+            }
 
-    }
+            int visitedCount = 0;
+            while (!queue.isEmpty()) {
+                int current = queue.poll(); // remove node from queue to process
+                visitedCount++;
+                for (int neighbor : adj[current]) {
+                    inDegree[neighbor]--;
+                    if (inDegree[neighbor] == 0) {
+                        queue.offer(neighbor); // add neighbor to queue if it has no more prerequisites
+                    }
+                }
+            }
+
+            return visitedCount == numExams;
+        }
 
 
-    /**
-     * Method getAdjList
-     *
-     * Building an Adjacency List for the directed graph based on number of nodes
-     * and passed in directed edges.
-     *
-     * @param numNodes      - number of nodes in graph (labeled 0 through n-1) for n nodes
-     * @param edges         - 2-dim array of directed edges
-     * @return ArrayList<Integer>[]  - An adjacency list representing the provided graph.
-     */
+        /**
+         * Method getAdjList
+         * <p>
+         * Building an Adjacency List for the directed graph based on number of nodes
+         * and passed in directed edges.
+         *
+         * @param numNodes - number of nodes in graph (labeled 0 through n-1) for n nodes
+         * @param edges    - 2-dim array of directed edges
+         * @return ArrayList<Integer>[]  - An adjacency list representing the provided graph.
+         */
 
-    private ArrayList<Integer>[] getAdjList(
-            int numNodes, int[][] edges) {
+        private ArrayList<Integer>[] getAdjList(
+                int numNodes, int[][] edges) {
 
-        ArrayList<Integer>[] adj 
+            ArrayList<Integer>[] adj
                     = new ArrayList[numNodes];      // Create an array of ArrayList ADT
 
-        for (int node = 0; node < numNodes; node++){
-            adj[node] = new ArrayList<Integer>();   // Allocate empty ArrayList per node
+            for (int node = 0; node < numNodes; node++) {
+                adj[node] = new ArrayList<Integer>();   // Allocate empty ArrayList per node
+            }
+            for (int[] edge : edges) {
+                adj[edge[0]].add(edge[1]);              // Add connected node edge [1] for node [0]
+            }
+            return adj;
         }
-        for (int[] edge : edges){
-            adj[edge[0]].add(edge[1]);              // Add connected node edge [1] for node [0]
-        }
-        return adj;
-    }
 
 
     /*
@@ -163,36 +183,72 @@ class ProblemSolutions {
      *   edge. So they form on large group.
      */
 
-    public int numGroups(int[][] adjMatrix) {
-        int numNodes = adjMatrix.length;
-        Map<Integer,List<Integer>> graph = new HashMap();
-        int i = 0, j =0;
+        public int numGroups(int[][] adjMatrix) {
+            int numNodes = adjMatrix.length;
+            Map<Integer, List<Integer>> graph = new HashMap();
+            int i = 0, j = 0;
 
-        /*
-         * Converting the Graph Adjacency Matrix to
-         * an Adjacency List representation. This
-         * sample code illustrates a technique to do so.
-         */
+            /*
+             * Converting the Graph Adjacency Matrix to
+             * an Adjacency List representation. This
+             * sample code illustrates a technique to do so.
+             */
 
-        for(i = 0; i < numNodes ; i++){
-            for(j = 0; j < numNodes; j++){
-                if( adjMatrix[i][j] == 1 && i != j ){
-                    // Add AdjList for node i if not there
-                    graph.putIfAbsent(i, new ArrayList());
-                    // Add AdjList for node j if not there
-                    graph.putIfAbsent(j, new ArrayList());
+            for (i = 0; i < numNodes; i++) {
+                for (j = 0; j < numNodes; j++) {
+                    if (adjMatrix[i][j] == 1 && i != j) {
+                        // Add AdjList for node i if not there
+                        graph.putIfAbsent(i, new ArrayList());
+                        // Add AdjList for node j if not there
+                        graph.putIfAbsent(j, new ArrayList());
 
-                    // Update node i adjList to include node j
-                    graph.get(i).add(j);
-                    // Update node j adjList to include node i
-                    graph.get(j).add(i);
+                        // Update node i adjList to include node j
+                        graph.get(i).add(j);
+                        // Update node j adjList to include node i
+                        graph.get(j).add(i);
+                    }
+                }
+            }
+
+            // YOUR CODE GOES HERE - you can add helper methods, you do not need
+            // to put all code in this method.
+            boolean[] visited = new boolean[numNodes];//tracks the nodes that have been visited
+            int count = 0;
+
+            for (i = 0; i < numNodes; i++) {
+                if (!visited[i]) { // if this node hasn't been visited,  new group
+                    exploreGroup(graph, visited, i); // visits all nodes in this group
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+    private void exploreGroup(Map<Integer, List<Integer>> graph, boolean[] visited, int node) {
+        Stack<Integer> stack = new Stack<>(); //empty stack
+        stack.push(node); //pushes the node onto the stack
+
+        while (!stack.isEmpty()) {
+            int current = stack.pop();//while the stack is not empty pop it into current
+            if (!visited[current]) {
+                visited[current] = true; //if the current is not visited mark it as visited
+                List<Integer> neighbors = graph.getOrDefault(current, new ArrayList<>());//gets the neighbors of the current
+                for (int neighbor : neighbors) {
+                    if (!visited[neighbor]) {
+                        stack.push(neighbor);//pushes the unvisited neighbor to the stack
+                    }
                 }
             }
         }
-
-        // YOUR CODE GOES HERE - you can add helper methods, you do not need
-        // to put all code in this method.
-        return -1;
     }
 
+    private void dfs(int[][] matrix, boolean[] visited, int node) {
+        visited[node] = true;// marks the node as visited
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[node][i] == 1 && !visited[i]) {
+                dfs(matrix, visited, i);//visit the connected node using recursion
+            }
+        }
+    }
 }
